@@ -52,7 +52,7 @@ python src/host_monitor/server.py --open --board http://169.254.70.21
 | [build](build/README.md) | Vivado/Vitis 2026.1 构建入口、布局布线后报告及修正前后数据。 |
 | [board](board/README.md) | 硬件连接、启动文件校验、板卡运行和只读状态查询。 |
 | [data](data/README.md) | 十分钟观测与导出核对、逐频音源试验、显示版本验证。 |
-| [skill](skill/README.md) | 可独立使用的 XSim 日志校验器、通过与故障示例及自检。 |
+| [skill](skill/README.md) | [通用 PYNQ Overlay 接口检查](skill/pynq_overlay/README.md)与 XSim 仿真验收，各含离线示例、自测和适用边界。 |
 | [report](report/design_report.pdf) | 按自主选题要求独立编写的设计报告；[模型交互与纠错记录](report/ai_collaboration.md)。 |
 
 ## 快速验证
@@ -63,6 +63,7 @@ python src/host_monitor/server.py --open --board http://169.254.70.21
 python -B sim/verify.py
 python -B data/check.py
 python -B skill/selftest.py
+python -B skill/pynq_overlay/selftest.py
 ```
 
 安装 AMD 工具后，可依 [构建说明](build/README.md) 从源码生成位流与启动镜像。实板复现见 [板卡说明](board/README.md)。完整构建需要本地合法安装的 AMD 套件、器件支持和相关运行库。上位机源码支持以太网和 USB 串口；[运行与打包](src/host_monitor/README.md)。

@@ -1,0 +1,11 @@
+{
+  "panel/buttons": {
+    "type": "xilinx.com:ip:axi_gpio:2.0",
+    "phys_addr": 1092616192,
+    "registers": {
+      "GPIO_DATA": {"address_offset": 0},
+      "GPIO_TRI": {"address_offset": 4},
+      "GPIO2_DATA": {"address_offset": 8}
+    }
+  }
+}

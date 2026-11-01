@@ -1,0 +1,7 @@
+{
+  "vlnv": "xilinx.com:ip:axi_dma:7.1",
+  "registers": {
+    "S2MM_DMACR": 48,
+    "S2MM_DMASR": 52
+  }
+}

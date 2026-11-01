@@ -1,0 +1,4 @@
+{
+  "vlnv": "xilinx.com:ip:axi_gpio:2.0",
+  "registers": {"GPIO_DATA": 0, "GPIO_TRI": 4}
+}

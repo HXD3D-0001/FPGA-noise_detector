@@ -1,0 +1,26 @@
+{
+  "dma_pcm": {
+    "type": "xilinx.com:ip:axi_dma:7.1",
+    "phys_addr": 1077936128,
+    "registers": {
+      "S2MM_DMACR": {
+        "address_offset": 48
+      },
+      "S2MM_DMASR": {
+        "address_offset": 52
+      }
+    }
+  },
+  "dma_spectrum": {
+    "type": "xilinx.com:ip:axi_dma:7.1",
+    "phys_addr": 1078001664,
+    "registers": {
+      "S2MM_DMACR": {
+        "address_offset": 48
+      },
+      "S2MM_DMASR": {
+        "address_offset": 52
+      }
+    }
+  }
+}
