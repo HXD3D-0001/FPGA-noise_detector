@@ -16,6 +16,6 @@ XILINX_SUITE 指向包含 Vivado、Vitis 和 gnu 的 2026.1 套件根目录。�
 python ./src/scripts/package_host_monitor.py --runtime $pythonZip --window-runtime $electronZip --serial-wheel $pyserialWheel
 ```
 
-其中三个变量分别填入本机对应归档文件的路径。打包器校验固定 SHA-256，保留各运行时自带许可及 pyserial 原始许可。工具路径和板卡序列号无需写入代码。
+其中三个变量分别填入本机对应归档文件的路径。打包器检查指定的运行时输入，保留各运行时自带许可及 pyserial 原始许可。工具路径和板卡序列号无需写入代码。
 
 result/ 中的 before_ 报告为 2026-10-26 空 FFT 缓存标志修正前的同顶层整机结果。没有 before_ 前缀的时序和利用率报告为同日修正后的布局布线结果。dsp_ooc_synthesis.rpt 是 2026-10-19 独立 capture_processing_top 的历史模块级综合结果，不能拿来作为整机优化前的基线。

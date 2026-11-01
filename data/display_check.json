@@ -1,6 +1,6 @@
 {
+  "trial": "standalone_window_short_run",
   "date": "2026-11-01",
-  "monitor": "1.5.1",
   "scope": "Separate native serial short run with hardware ADC",
   "live_bands_checked": 10,
   "saved_bands_checked": 10,

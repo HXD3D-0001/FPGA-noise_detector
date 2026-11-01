@@ -1,6 +1,6 @@
 # FPGA-noise_detector
 
-住宅低频噪音监测与特征分析。AX7021 通过 MAX4466 和 PCM1808 采集 48 kHz 音频，在 Zynq-7000 上分析中心频率 31.5～250 Hz 的十个频带，将频谱、事件与住户标记写入 SD 卡。竞赛展示由电脑网口直连 ETH0。Windows 上位机源码对应 1.6.0，支持全程频带曲线、住户标记声压表和整场 ZIP 导出。
+住宅低频噪音监测与特征分析。AX7021 通过 MAX4466 和 PCM1808 采集 48 kHz 音频，在 Zynq-7000 上分析中心频率 31.5～250 Hz 的十个频带，将频谱、事件与住户标记写入 SD 卡。竞赛展示由电脑网口直连 ETH0。Windows 上位机支持全程频带曲线、住户标记声压表和整场 ZIP 导出。
 
 ## 开发板源码
 
@@ -20,7 +20,7 @@
 | 从源码构建开发板 | Windows x64、PowerShell 7、Python 3.12+、Vivado/Vitis 2026.1。安装 Zynq-7000 器件支持、可用的 FFT IP 许可、Vitis Embedded 与 ARM 工具链。工程使用套件提供的 FreeRTOS、FatFs、lwIP 和 FSBL。 |
 | 运行上位机，通过网线连板 | Windows x64、Python 3.12+ 和浏览器。该方式使用 Python 标准库。电脑有线网口接板上 ETH0。 |
 | 运行上位机，通过 USB 串口连板 | 在上述环境中安装 `pyserial==3.5`，并确认 Windows 已识别板卡对应的 COM 口。串口参数为 115200、8N1。 |
-| 自行打包 1.6.0 Windows 独立窗口 | 在本机准备 Python 3.13.16 嵌入式运行包、Electron 45.2.1 Windows x64 和 pyserial 3.5 wheel。打包脚本校验下载文件的 SHA-256；版本、来源和命令见[构建说明](build/README.md)。 |
+| 自行打包 Windows 独立窗口 | 在本机准备 Python 3.13.16 嵌入式运行包、Electron 45.2.1 Windows x64 和 pyserial 3.5 wheel。所需依赖、来源和命令见[构建说明](build/README.md)。 |
 
 ### 构建开发板
 
@@ -47,11 +47,11 @@ python src/host_monitor/server.py --open --board http://169.254.70.21
 
 | 目录 | 内容及入口 |
 | --- | --- |
-| [src](src/README.md) | RTL、约束、PS 固件、1.6.0 上位机及生成脚本。 |
+| [src](src/README.md) | RTL、约束、PS 固件、上位机及生成脚本。 |
 | [sim](sim/README.md) | 离线验证、RTL 仿真和错误首帧标志的回归结果。 |
 | [build](build/README.md) | Vivado/Vitis 2026.1 构建入口、布局布线后报告及修正前后数据。 |
-| [board](board/README.md) | 硬件连接、启动文件校验、板卡运行和只读状态查询。 |
-| [data](data/README.md) | 十分钟观测与导出核对、逐频音源试验、显示版本验证。 |
+| [board](board/README.md) | 硬件连接、启动镜像准备、板卡运行和只读状态查询。 |
+| [data](data/README.md) | 十分钟长测、独立窗口短测、整场导出短测及逐频声源试验。 |
 | [skill](skill/README.md) | [通用 PYNQ Overlay 接口检查](skill/pynq_overlay/README.md)与 XSim 仿真验收，各含离线示例、自测和适用边界。 |
 | [report](report/design_report.pdf) | 按自主选题要求独立编写的设计报告；[模型交互与纠错记录](report/ai_collaboration.md)。 |
 
@@ -66,11 +66,15 @@ python -B skill/selftest.py
 python -B skill/pynq_overlay/selftest.py
 ```
 
+上述命令无需连接开发板。`sim/verify.py` 同时运行串口、整场记录与导出的 Python 回归；`data/check.py` 使用归档实测数据复算结果。
+
 安装 AMD 工具后，可依 [构建说明](build/README.md) 从源码生成位流与启动镜像。实板复现见 [板卡说明](board/README.md)。完整构建需要本地合法安装的 AMD 套件、器件支持和相关运行库。上位机源码支持以太网和 USB 串口；[运行与打包](src/host_monitor/README.md)。
 
 ## 如何解读提交数据
 
-1.5.0 的十分钟试验采用原生串口与真实 ADC，SD 有效覆盖 606.208 / 610.234 s，六条标记同步。1.5.1 的屏幕与板端字段一致性在另一场短测中验证。数据目录保留频带数值、相对时间与统计结果，未纳入住户录音、自由文本备注或开发机身份信息。
+* **十分钟长测**用真实 ADC 和 USB 串口采集，SD 总时长 610.234 s，有效 606.208 s，六条标记同步。后来用这场已有的 208 份频谱回放整场导出。
+* **独立窗口短测**核对实时曲线、汇总与导出所用的声压字段；100 Hz 汇总显示 74.6 dB。
+* **整场导出短测**另开实板会话，取得 12 个观测点，2 条标记均与同段读数匹配；暂停界面频谱请求时，后台观测由 5 个增至 8 个。随包提供[脱敏试验数据](data/full_session_short_run.json)，回放与新录短测分开解读。
 
 ## 开源范围
 

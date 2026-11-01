@@ -8,7 +8,8 @@ suites = [
     ("tests/python", "test_ps_hardware.py"),
     ("tests/python", "test_embedded_platform.py"),
     ("host_monitor", "test_serial_board.py"),
+    ("host_monitor", "test_session_*.py"),
 ]
 for directory, suite in suites:
     subprocess.run([sys.executable, "-B", "-m", "unittest", "discover", "-s", str(src / directory), "-p", suite], check=True)
-print("PASS portable validation (XSA fixtures, platform contracts and serial transport)")
+print("PASS portable validation (XSA fixtures, platform contracts, serial transport and session recording/export)")

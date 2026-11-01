@@ -14,6 +14,34 @@ def require(condition, description):
     if not condition:
         raise SystemExit("FAIL: " + description)
 
+def check_full_session():
+    info = json.loads((root / "full_session_short_run.json").read_text(encoding="utf-8"))
+    centers = [31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250]
+    require(info["centers_hz"] == centers, "short-run frequency bands")
+    rows = read_csv("full_session_observations.csv")
+    times = [int(row["elapsed_ms"]) for row in rows]
+    require(len(rows) == 12 and times[0] == 0 and all(b > a for a, b in zip(times, times[1:])),
+            "twelve short-run readings in time order")
+    levels = {t: [Decimal(row[f"spl_db_{hz}"]) for hz in centers] for t, row in zip(times, rows)}
+    for values in levels.values():
+        require(all(value.is_finite() for value in values), "finite ten-band pressure readings")
+    offsets = []
+    for marker in info["markers"]:
+        submitted = marker["submitted_elapsed_ms"]
+        nearest = min(times, key=lambda t: (abs(t - submitted), t))
+        offset = nearest - submitted
+        require(marker["sd_confirmed"] and abs(offset) <= 5000, "SD marker with nearby reading")
+        require(marker["reading_elapsed_ms"] == nearest and marker["offset_ms"] == offset,
+                "exported marker matched the nearest reading")
+        require(levels[nearest] == [Decimal(str(x)) for x in marker["spl_db"]],
+                "exported marker and matching reading agree across ten bands")
+        offsets.append(offset)
+    require(offsets == [299, 1413], "two recorded marker offsets")
+    require(info["record_counts_while_view_paused"] == [5, 8], "background recording continued")
+    require(info["export_members_by_type"] == {"csv": 2, "html": 1, "svg": 10},
+            "thirteen export members by format")
+    print("PASS: 12 short-run readings, two matched markers and thirteen export members.")
+
 def main():
     info = json.loads((root / "ten_minute_check.json").read_text(encoding="utf-8"))
     obs = read_csv("ten_minute_observations.csv")
@@ -35,6 +63,7 @@ def main():
     steps = read_csv("speaker_steps.csv")
     require(len(steps) == 10 and all(abs(Decimal(r["steady_dbfs"])-Decimal(r["background_dbfs"])-Decimal(r["difference_db"])) <= Decimal("0.02") for r in steps), "per-tone difference (two-decimal source values)")
     print("PASS: 208 observations, 180 retained points, four files, ten exported bands and ten speaker steps.")
+    check_full_session()
 
 if __name__ == "__main__":
     main()

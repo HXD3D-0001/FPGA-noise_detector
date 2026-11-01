@@ -1,6 +1,6 @@
 {
+  "trial": "ten_minute_continuous_run",
   "date": "2026-11-01",
-  "monitor": "1.5.0",
   "source": "hardware ADC left channel",
   "transport": "native USB serial",
   "wall_observation_seconds": 600.3,
