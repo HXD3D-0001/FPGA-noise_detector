@@ -49,7 +49,7 @@ def main():
     monitor = ROOT/'host_monitor'
     window_files = ('window/main.cjs', 'window/package.json')
     license_name = 'licenses/pyserial-license.txt'
-    source = {name: (monitor/name).read_bytes() for name in (*APP_FILES, 'README.md', 'start_monitor.cmd', license_name, *window_files)}
+    source = {name: (monitor/name).read_bytes() for name in (*APP_FILES, 'guide.pdf', 'start_monitor.cmd', license_name, *window_files)}
     archive = output/'AX7021Monitor_Windows_x64.zip'
     staged = archive.with_suffix('.zip.tmp')
     prefix = 'AX7021Monitor/'
@@ -78,7 +78,7 @@ def main():
                         bundle.writestr(prefix + 'runtime/' + name, serial_wheel.read(name))
             bundle.writestr(prefix + license_name, source[license_name])
             bundle.writestr(prefix + 'Start.cmd', source['start_monitor.cmd'])
-            bundle.writestr(prefix + 'README.md', source['README.md'])
+            bundle.writestr(prefix + 'guide.pdf', source['guide.pdf'])
         with zipfile.ZipFile(staged) as bundle:
             bad_file = bundle.testzip()
             if bad_file:
