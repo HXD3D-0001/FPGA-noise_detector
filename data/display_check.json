@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-01",
+  "monitor": "1.5.1",
+  "scope": "Separate native serial short run with hardware ADC",
+  "live_bands_checked": 10,
+  "saved_bands_checked": 10,
+  "verified_trend_points": 4,
+  "saved_peak_hz": 100,
+  "saved_peak_dbfs": -45.53,
+  "saved_peak_display_db": 74.6,
+  "delta_above_larger_neighbor_db": 6.1,
+  "independent_readback_matches": true,
+  "original_verification_sha256": "321d7f137f3e6c898573304880388c2323d13f379a4166a62535457fefe7dbb9"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "ax7021-monitor",
+  "productName": "AX7021Monitor",
+  "version": "1.5.1",
+  "main": "main.cjs"
+}

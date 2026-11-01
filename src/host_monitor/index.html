@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>住宅低频噪声排查 · AX7021</title><link rel="stylesheet" href="/style.css">
+  <script src="/model.js" defer></script><script src="/app.js" defer></script><script src="/capture_ui.js" defer></script>
+</head>
+<body><main>
+  <header>
+    <div><div class="eyebrow">AX7021　/　住宅声环境监测</div><h1>住宅低频噪声排查</h1><p>31.5–250 Hz · Zynq PL 滤波、降采样与 FFT，PS 管理采集和记录</p></div>
+    <div class="header-tools"><span id="connection" class="badge">等待连接</span><a href="#reports">查看或导入报告 ↓</a></div>
+  </header>
+  <section class="panel control" aria-labelledby="control-title">
+    <div class="section-head"><div><div class="eyebrow">01　监测现场</div><h2 id="control-title">连接与采集</h2></div><div class="source-box"><strong id="source">等待板卡数据</strong><div id="board" class="subtle">连接板卡 ETH0 网口</div></div></div>
+    <div class="toolbar"><div class="actions">
+      <label class="address-label">连接方式<select id="transport"><option value="board">以太网</option><option value="serial">USB 串口</option></select></label>
+      <label class="address-label" id="network-field" for="board-address">板卡地址<input id="board-address" type="url" placeholder="http://169.254.70.21" autocomplete="off" spellcheck="false"></label>
+      <label class="address-label" id="serial-field" hidden>串口（115200）<select id="serial-port"></select></label>
+      <button id="ports-refresh" class="secondary" hidden>刷新串口</button><button id="resume" class="secondary">连接板卡</button>
+      <button id="serial-release" class="secondary" hidden>断开串口</button></div>
+    <div class="actions"><button id="capture-start" disabled>开始采集</button><button id="capture-stop" class="stop" disabled>停止并保存</button></div></div>
+    <div id="capture-operation" class="capture-operation" role="status">正在读取板卡采集状态…</div>
+    <div id="error" class="error" role="alert" hidden></div>
+    <details class="diagnostics"><summary>连接诊断与软件自检</summary><p id="capture-board">先填写板卡地址并连接</p><div class="actions"><button id="selftest" class="secondary">软件自检</button><span id="selftest-result" class="badge" role="status">尚未检测</span><span id="selftest-time">只读检查本地软件与板卡接口</span></div><div id="selftest-checks"></div></details>
+  </section>
+  <section class="metrics" aria-label="监测状态">
+    <div><span>采集状态</span><strong id="capture-state">未知</strong><small id="mode">源模式未知</small></div>
+    <div><span>数据新鲜度</span><strong id="freshness">尚无数据</strong><small id="received">等待首个响应</small></div>
+    <div><span>有效覆盖率</span><strong id="coverage">—</strong><small id="duration">—</small></div>
+    <div><span>存储状态</span><strong id="storage-state">未知</strong><small id="storage-detail">等待状态响应</small></div>
+  </section>
+  <section class="panel"><div class="section-head"><div><div class="eyebrow">02　频谱分析</div><h2>哪些频带最突出？</h2><p id="band-description">1/3 倍频程 · 板端频带声压级</p></div><span class="unit">dB</span></div>
+    <div id="bands" class="bands"><div class="empty">连接板卡或导入报告后显示十个频带</div></div><div id="band-axis" class="axis-note">横轴为中心频率，柱顶为板端声压级（dB）。</div>
+    <div class="finding"><strong>频带解读</strong><div><p id="analysis-text">等待有效频带数据。</p><p id="analysis-quality"></p></div></div>
+    <div class="finding"><strong>辅助排查</strong><div><p id="analysis-clue">等待采集或导入 ADC 报告。</p></div></div>
+    <div id="notice" class="notice" role="status">等待板端频谱。</div>
+  </section>
+  <section class="panel"><div class="section-head"><div><h2>实时频带趋势</h2><p id="trend-description">横轴为电脑接收时间，纵轴为频带声压级。</p></div><span id="point-count" class="unit">0 个快照</span></div>
+    <div class="actions" id="trend-controls"><label class="trend-control">观察频带 <select id="trend-band" aria-label="选择趋势频带"><option value="2" selected>50 Hz</option><option value="0">31.5 Hz</option><option value="1">40 Hz</option><option value="3">63 Hz</option><option value="4">80 Hz</option><option value="5">100 Hz</option><option value="6">125 Hz</option><option value="7">160 Hz</option><option value="8">200 Hz</option><option value="9">250 Hz</option><option value="all">全部频带</option></select></label><span class="subtle">声压级（dB）</span></div>
+    <canvas id="trend" hidden height="210" aria-label="实时频带声压级趋势"></canvas><div id="trend-empty" class="trend-empty">等待实时声压级读数。</div><div id="legend" class="legend"></div>
+  </section>
+  <section class="panel"><div class="section-head"><div><div class="eyebrow">03　住户记录</div><h2>记录感受到噪声的时刻</h2><p>听到嗡鸣或感到振动时，记下强度和现场设备工况，便于事后核对。</p></div><span id="marker-count" class="unit">0 条</span></div>
+    <div class="actions"><label class="address-label">感受强度<select id="marker-strength"><option value="1">1 · 很轻</option><option value="2">2 · 较轻</option><option value="3" selected>3 · 中等</option><option value="4">4 · 明显</option><option value="5">5 · 很强</option></select></label><label class="address-label marker-note-input">现场备注<input id="marker-note" maxlength="512" placeholder="例如：卧室窗边，水泵刚启动"></label><button id="marker-submit" disabled>添加标记</button></div>
+    <p id="marker-operation" role="status">采集开始后可添加标记。</p><div id="markers" class="markers"><div class="empty">暂无标记数据</div></div>
+  </section>
+  <section class="panel" id="reports"><div class="section-head"><div><div class="eyebrow">04　复核与交付</div><h2>治理前后对比与报告</h2><p>停止并保存后会自动读取板卡 SD 汇总；读取失败时页面保留最后一次数据，仍可导出。</p></div></div>
+    <details><summary>指定 SD 汇总路径或比较两次监测</summary><div class="actions"><label class="address-label">本次 / 治理前<input id="report-path" placeholder="留空读取本次，或填 SRxxxxxx/ASUM.LFR"></label><label class="address-label">治理后（选填）<input id="compare-path" placeholder="第二次监测的 SD 汇总路径"></label></div></details>
+    <div class="actions report-actions"><button id="report-read" disabled>读取已存报告</button><label class="button secondary file-label">导入板端原始报告<input id="file" type="file" accept=".json,application/json"></label></div>
+    <p id="comparison-text">读取两份 SD 汇总，或导入含对比结果的报告。</p>
+    <div id="comparison-table"></div>
+    <div class="actions export-actions"><button id="export-json" class="secondary" disabled>导出 JSON</button><button id="export-csv" class="secondary" disabled>导出 CSV</button><button id="export-html" class="secondary" disabled>导出打印版</button><button id="open-folder" class="secondary">打开保存文件夹</button></div>
+    <p id="report-operation" role="status">导出十个中心频率的声压级；保存后显示文件路径。</p>
+  </section>
+  <footer><span id="identity">Session — / Capture — / Config —</span><span>AX7021 · 本地监测</span></footer>
+</main></body></html>

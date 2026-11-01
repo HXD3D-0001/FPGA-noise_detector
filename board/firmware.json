@@ -1,0 +1,19 @@
+{
+  "board": "AX7021",
+  "device": "xc7z020clg484-2",
+  "release": "bandestimate",
+  "release_date": "2026-11-01",
+  "historical_product_zip_sha256": "ac2ceb70fb1029c45f4abe4ff8a23f393a5a8b94c9cfc34f22b8ee885241b53b",
+  "historical_product_zip_member": "AX7021_Product_20261101_BandEstimate/Board/BOOT.BIN",
+  "files": {
+    "capture.bit": {
+      "sha256": "f3cc0530502901587ddc004984194177a3920d8997a8a459d8ce2883923c9c52",
+      "bytes": 4045774
+    },
+    "boot.bin": {
+      "sha256": "40b18ec01aef104d8a146db5197b81ecb8b0766e2db8ce64b95b6e68cc7e0eb1",
+      "bytes": 4814880,
+      "included": false
+    }
+  }
+}

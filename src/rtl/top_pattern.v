@@ -1,0 +1,71 @@
+// Continuous TEST source processing datapath. The clock is FCLK0; no ADC clock
+// participates. Board/control/DMA wrapper integration is a separate boundary.
+// start/clear are permitted only after the external drain barrier. dma_abort
+// means downstream DMA reset has completed and cancels partial packet ownership.
+module top_pattern #(
+ parameter integer CLK_HZ=50000000,FFT_CLOCK_GATE=0,DEBUG_INGEST_STALL=0,
+ parameter SINE_FILE="generated/pattern_sine.mem",
+ parameter FIR0_FILE="generated/fir_stage1.mem",FIR1_FILE="generated/fir_stage2.mem",
+ parameter FIR2_FILE="generated/fir_stage3.mem",HANN_FILE="generated/hann4096.mem"
+)(input wire clk,rst,enable,start,clear_history,dma_abort,
+ input wire clear_energy_records,
+ input wire test_fft_input_stall,
+ input wire dma_spectrum_abort,dma_pcm_abort,
+ input wire mode_valid,stopped,input wire[1:0]mode_select,
+ output wire mode_ready,mode_rejected,output wire[1:0]mode_active,
+ input wire spectrum_flush_req,dma_spectrum_reset_done,input wire[31:0]dma_spectrum_reset_seq,
+ output wire spectrum_flush_pending,spectrum_flush_done,spectrum_flush_timeout,output wire[31:0]spectrum_flush_request_seq,
+ output wire processing_busy,drained,
+ output wire[63:0]fork_fft_drops,fork_pcm_drops,fork_energy_drops,
+ output wire[31:0]fork_fft_highwater,fork_pcm_highwater,fork_energy_highwater,
+ output wire[63:0]frame_candidates,frame_drops,frame_rejected,window_saturations,
+ output wire[63:0]store_completed,store_drops,store_invalid,fft_packet_errors,fft_packets,
+ output wire[63:0]pcm_invalid,pcm_packet_errors,pcm_packets,energy_discontinuities,energy_config_errors,
+ output wire[31:0]energy_highwater,
+ output wire[31:0]energy_occupancy,
+ output wire[63:0]energy_flush_count,pcm_flush_count,
+ output wire analysis_ready,source_position_valid,
+ output wire[63:0]latest_raw,
+ output wire[63:0]fir0_saturations,fir1_saturations,fir2_saturations,
+ output wire[63:0]raw_candidates,raw_completed,raw_drops,raw_invalid,
+ input wire[63:0]capture_id,origin_raw,input wire[31:0]config_id,input wire[1:0]pattern_id,
+ output wire fft_axis_tvalid,input wire fft_axis_tready,output wire[63:0]fft_axis_tdata,
+ output wire[7:0]fft_axis_tkeep,output wire fft_axis_tlast,
+ output wire pcm_axis_tvalid,input wire pcm_axis_tready,output wire[63:0]pcm_axis_tdata,
+ output wire[7:0]pcm_axis_tkeep,output wire pcm_axis_tlast,
+ output wire energy_valid,input wire energy_ready,output wire[63:0]energy_seq,energy_capture,energy_first_raw,energy_value,
+ output wire[31:0]energy_config,output wire[7:0]energy_flags,
+ output wire[63:0]raw_count,source_drops,decimation_saturations,
+ output wire[63:0]fft_completed,fft_drops,fft_timeouts,fft_errors,pcm_candidates,pcm_drops,energy_candidates,energy_drops,
+ output wire[31:0]last_ingest_cycles,last_job_cycles);
+ wire rv,rr;wire signed[23:0]rd;wire[63:0]rc,ri;wire[7:0]rf;
+ pattern_source #(.CLK_HZ(CLK_HZ),.SINE_FILE(SINE_FILE)) source(
+  .clk(clk),.rst(rst),.enable(enable),.start(start),.capture_id(capture_id),.origin_raw(origin_raw),.pattern_id(pattern_id),
+  .m_valid(rv),.m_ready(rr),.m_data(rd),.m_capture_id(rc),.m_raw_index(ri),.m_flags(rf),.raw_count(raw_count),.drop_count(source_drops));
+ sample_processing_core #(.CLK_HZ(CLK_HZ),.FFT_CLOCK_GATE(FFT_CLOCK_GATE),.DEBUG_INGEST_STALL(DEBUG_INGEST_STALL),
+  .FIR0_FILE(FIR0_FILE),.FIR1_FILE(FIR1_FILE),.FIR2_FILE(FIR2_FILE),.HANN_FILE(HANN_FILE)) processing(
+  .clk(clk),.rst(rst),.start(start),.clear_history(clear_history),
+  .dma_abort(dma_abort),.clear_energy_records(clear_energy_records),.test_fft_input_stall(test_fft_input_stall),.dma_spectrum_abort(dma_spectrum_abort),
+  .dma_pcm_abort(dma_pcm_abort),.mode_valid(mode_valid),.stopped(stopped),.mode_select(mode_select),
+  .mode_ready(mode_ready),.mode_rejected(mode_rejected),.mode_active(mode_active),.spectrum_flush_req(spectrum_flush_req),
+  .dma_spectrum_reset_done(dma_spectrum_reset_done),.dma_spectrum_reset_seq(dma_spectrum_reset_seq),.spectrum_flush_pending(spectrum_flush_pending),.spectrum_flush_done(spectrum_flush_done),
+  .spectrum_flush_timeout(spectrum_flush_timeout),.spectrum_flush_request_seq(spectrum_flush_request_seq),.processing_busy(processing_busy),.drained(drained),
+  .fork_fft_drops(fork_fft_drops),.fork_pcm_drops(fork_pcm_drops),.fork_energy_drops(fork_energy_drops),.fork_fft_highwater(fork_fft_highwater),
+  .fork_pcm_highwater(fork_pcm_highwater),.fork_energy_highwater(fork_energy_highwater),.frame_candidates(frame_candidates),.frame_drops(frame_drops),
+  .frame_rejected(frame_rejected),.window_saturations(window_saturations),.store_completed(store_completed),.store_drops(store_drops),
+  .store_invalid(store_invalid),.fft_packet_errors(fft_packet_errors),.fft_packets(fft_packets),.pcm_invalid(pcm_invalid),
+  .pcm_packet_errors(pcm_packet_errors),.pcm_packets(pcm_packets),.energy_discontinuities(energy_discontinuities),.energy_config_errors(energy_config_errors),
+  .energy_highwater(energy_highwater),.energy_occupancy(energy_occupancy),.energy_flush_count(energy_flush_count),.pcm_flush_count(pcm_flush_count),
+  .analysis_ready(analysis_ready),.source_position_valid(source_position_valid),.latest_raw(latest_raw),.fir0_saturations(fir0_saturations),
+  .fir1_saturations(fir1_saturations),.fir2_saturations(fir2_saturations),.raw_candidates(raw_candidates),.raw_completed(raw_completed),
+  .raw_drops(raw_drops),.raw_invalid(raw_invalid),.config_id(config_id),.fft_axis_tvalid(fft_axis_tvalid),
+  .fft_axis_tready(fft_axis_tready),.fft_axis_tdata(fft_axis_tdata),.fft_axis_tkeep(fft_axis_tkeep),.fft_axis_tlast(fft_axis_tlast),
+  .pcm_axis_tvalid(pcm_axis_tvalid),.pcm_axis_tready(pcm_axis_tready),.pcm_axis_tdata(pcm_axis_tdata),.pcm_axis_tkeep(pcm_axis_tkeep),
+  .pcm_axis_tlast(pcm_axis_tlast),.energy_valid(energy_valid),.energy_ready(energy_ready),.energy_seq(energy_seq),
+  .energy_capture(energy_capture),.energy_first_raw(energy_first_raw),.energy_value(energy_value),.energy_config(energy_config),
+  .energy_flags(energy_flags),.decimation_saturations(decimation_saturations),.fft_completed(fft_completed),.fft_drops(fft_drops),
+  .fft_timeouts(fft_timeouts),.fft_errors(fft_errors),.pcm_candidates(pcm_candidates),.pcm_drops(pcm_drops),
+  .energy_candidates(energy_candidates),.energy_drops(energy_drops),.last_ingest_cycles(last_ingest_cycles),.last_job_cycles(last_job_cycles),
+  .s_valid(rv),.s_ready(rr),.s_data(rd),.s_capture_id(rc),
+  .s_raw_index(ri),.s_flags(rf));
+endmodule

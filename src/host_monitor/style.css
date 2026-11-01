@@ -1,0 +1,102 @@
+:root {
+  color-scheme: light;
+  font: 15px/1.55 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+  color: #162e42;
+  background: #edf2f4;
+}
+* {box-sizing: border-box}
+[hidden] {display: none !important}
+body {margin: 0}
+main {max-width: 1120px; margin: auto; padding: 22px clamp(12px,3vw,34px) 32px}
+header,.section-head,.toolbar,footer,.actions {display: flex; align-items: center; justify-content: space-between; gap: 16px}
+header {background: #173746; color: #fff; border-radius: 14px; padding: 22px clamp(16px,3vw,30px); border-left: 6px solid #47b5a0}
+.eyebrow {font-size: 12px; font-weight: 700; letter-spacing: .065em; color: #27776c}
+header .eyebrow {color: #99ded0}
+h1,h2,p {margin: 0}
+h1 {font-size: clamp(24px,3vw,34px); line-height: 1.35; margin: 4px 0}
+h2 {font-size: clamp(18px,2vw,22px); line-height: 1.5}
+p,.subtle,.axis-note,.address-label,.trend-control,footer {font-size: 13px; color: #4e6677}
+header p {color: #d1e2e6}
+.panel,.metrics {background: white; border: 1px solid #cedce2; border-radius: 12px; margin: 14px 0}
+.panel {padding: 18px clamp(14px,2.6vw,26px)}
+.section-head {margin-bottom: 14px; align-items: flex-start}
+.section-head .eyebrow {margin-bottom: 2px}
+.section-head p {margin-top: 3px}
+.source-box {text-align: right; overflow-wrap: anywhere; font-size: 14px}
+.badge,.unit {padding: 5px 11px; border-radius: 6px; background: #e8eff1; color: #365665; font-size: 12px; white-space: nowrap}
+.badge.good {background: #daf4e8; color: #166449}
+.badge.warn,.notice.test,.notice.simulation {background: #fff3d6; color: #774c12}
+.badge.bad,.error {background: #ffebe8; color: #932d22}
+.actions,.toolbar {flex-wrap: wrap}
+.actions {justify-content: flex-start; align-items: flex-end; gap: 8px}
+button,.button {display: inline-block; padding: 8px 15px; border: 1px solid transparent; border-radius: 6px; background: #176f66; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer}
+button:hover:enabled,.button:hover {filter: brightness(.94)}
+button:disabled {opacity: .5; cursor: default}
+.secondary {background: #edf3f5; border-color: #c8d8dd; color: #2d5061}
+.stop {background: #f8ece7; color: #88472b; border-color: #e4c8bc}
+:focus-visible,.file-label:focus-within {outline: 3px solid #1673b0; outline-offset: 2px}
+.file-label {position: relative; overflow: hidden}
+.file-label input {position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer}
+.address-label {display: flex; flex-direction: column; gap: 2px}
+input,select {border: 1px solid #adc3cc; border-radius: 5px; background: #fcfefe; color: #1c394a; font: inherit; padding: 8px 9px}
+#board-address {width: 225px}
+.capture-operation,.finding {background: #e9f5f1; color: #20584e; border-left: 3px solid #55a796}
+.capture-operation,.error {padding: 6px 11px; font-size: 13px; margin-top: 10px}
+.capture-error {color: #952d21; border-color: #ce7263; background: #fff0eb}
+details {margin-top: 8px; font-size: 13px; color: #506775}
+summary {cursor: pointer; width: fit-content}
+details[open] summary {margin-bottom: 8px}
+.diagnostics .actions {margin-top: 6px; align-items: center}
+.selftest-check {display: flex; gap: 14px; padding: 8px 0; border-bottom: 1px solid #dae4e8}
+.selftest-check strong {min-width: 135px}
+.metrics {display: grid; grid-template-columns: repeat(4,minmax(0,1fr))}
+.metrics>div {padding: 12px 16px; border-left: 1px solid #dce6e9}
+.metrics>div:first-child {border: 0}
+.metrics span,.metrics small {display: block; font-size: 12px; color: #536c7d}
+.metrics strong {display: block; margin: 3px 0; font-size: 18px}
+.bands {display: grid; grid-template-columns: repeat(10,minmax(0,1fr)); gap: clamp(2px,1vw,13px)}
+.band {text-align: center; min-width: 0; font-size: 13px}
+.band strong {font: 650 13px/1.5 Consolas,monospace}
+.band span {white-space: nowrap; color: #395364}
+.meter {position: relative; overflow: hidden; height: 104px; margin: 4px auto; width: 64%; border-radius: 3px; background: repeating-linear-gradient(to top,#edf3f4 0%,#edf3f4 24%,#dce7ea 24%,#dce7ea 25%)}
+.fill {position: absolute; bottom: 0; left: 0; right: 0; border-radius: 3px 3px 0 0}
+.axis-note {font-size: 12px; margin-top: 7px}
+.finding {margin-top: 12px; padding: 10px 13px; display: flex; gap: 16px; align-items: baseline}
+.finding strong {white-space: nowrap; font-size: 14px}
+.finding p {color: #25584e}
+.notice {font-size: 12px; margin-top: 5px; color: #536675}
+.empty {grid-column: 1/-1; padding: 20px; text-align: center; color: #5d7180; background: #f5f8f9; border-radius: 6px}
+canvas {width: 100%; height: 210px; display: block}
+.trend-control select {font-size: 13px; margin-left: 4px; padding: 4px 8px}
+.legend {display: flex; flex-wrap: wrap; gap: 9px; font-size: 12px; color: #526978}
+.legend i {display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 3px}
+.marker-note-input {flex: 1}
+#marker-operation,#report-operation,#comparison-text {margin: 8px 0; line-height: 1.6}
+#report-operation {white-space: pre-line; overflow-wrap: anywhere}
+.marker {display: grid; grid-template-columns: 48px minmax(105px,auto) 1fr; gap: 12px; border-top: 1px solid #dce6e9; padding: 10px 0; font-size: 13px}
+.marker small {display: block; color: #546e7c}
+.marker-note {white-space: pre-wrap; overflow-wrap: anywhere}
+.report-actions,.export-actions {margin-top: 12px}
+.export-actions {border-top: 1px solid #dce6e9; padding-top: 12px}
+#comparison-table table {width: 100%; border-collapse: collapse; font: 13px/1.6 Consolas,"Microsoft YaHei",monospace}
+td,th {text-align: right; padding: 3px 6px; border-bottom: 1px solid #dce6e9} th {background: #edf4f4}
+footer {font-size: 12px; flex-wrap: wrap; overflow-wrap: anywhere}
+@media(max-width:680px) {
+  main {padding-top: 10px}
+  .metrics {grid-template-columns: 1fr 1fr}
+  .metrics>div:nth-child(n+3) {border-top: 1px solid #dce6e9}
+  .band strong,.band span {font-size: 11px}
+  .band span {white-space: normal}
+  .source-box {font-size: 12px}
+  .finding {display: block}
+  .address-label input {max-width: 100%}
+  .selftest-check {display: block}
+}
+@media(max-width:480px) {
+  .bands {grid-template-columns: repeat(5,minmax(0,1fr)); gap: 9px 5px}
+  .meter {height: 58px}
+  .source-box {max-width: 45%}
+}
+.header-tools {display: grid; justify-items: end; gap: 8px}
+.header-tools a {color: #c9e9e3; white-space: nowrap; font-size: 12px}
+.trend-empty {background: #f3f7f8; padding: 10px; color: #526978; font-size: 13px}

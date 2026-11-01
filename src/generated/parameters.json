@@ -1,0 +1,41 @@
+{
+  "coefficient_format": "signed Q1.17",
+  "accumulator_bits": 56,
+  "rounding": "nearest ties away from zero",
+  "sample_bits": 24,
+  "stages": [
+    {
+      "taps": 67,
+      "decimation": 6,
+      "phase": 5,
+      "sha256_le_int32": "ce54158a7c902805969c821e8f8bff5645f6f101f9790d16736787d721533e9d"
+    },
+    {
+      "taps": 59,
+      "decimation": 4,
+      "phase": 3,
+      "sha256_le_int32": "9f19c1d2df65cee22ea73fea97649ea6cb2ebd1a9df8dd65682d254ca8b181bf"
+    },
+    {
+      "taps": 53,
+      "decimation": 2,
+      "phase": 1,
+      "sha256_le_int32": "88d5978de49d0bb338f6738e0f55a75994db0f998a122fc1e2f13d64cbdbabe7"
+    }
+  ],
+  "hann": {
+    "count": 4096,
+    "periodic": true,
+    "sha256_le_int32": "345921a5d83038f9d3c31ecdf58a131668c52b3bcfe6a6eb6b48f1cfbaa5547a"
+  },
+  "vectors": {
+    "random_seed": 7021,
+    "integer_reference": "direct Python integer convolution",
+    "sha256_ascii": {
+      "fir_input.txt": "17338fd399afa01ce7e4f5782dd5ae1ce9c47cf65f1c9a74cfff738bb765dbb4",
+      "fir_expected.txt": "01e24ee3e5e38fefd4b3518c57ce966dd2111e6dfe0dde3d65eac04c9e6405f1",
+      "chain_input.txt": "a742aa7fbb597748eb9cd8a91de15c393dd5635d9d6a91a04cf4d9405faf19e7",
+      "chain_expected.txt": "69a49ce6bd8c724e48424d741034431beb51f930d93c74976a2fc88643fe4ca9"
+    }
+  }
+}

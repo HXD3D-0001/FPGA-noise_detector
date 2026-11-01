@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-01",
+  "monitor": "1.5.0",
+  "source": "hardware ADC left channel",
+  "transport": "native USB serial",
+  "wall_observation_seconds": 600.3,
+  "sd_duration_seconds": 610.234,
+  "sd_valid_seconds": 606.208,
+  "coverage_percent": 99.34,
+  "receipts": 208,
+  "retained_points": 180,
+  "max_receipt_gap_seconds": 3.269,
+  "interaction_checkpoints": 33,
+  "acquisition_commands": [
+    "start",
+    "stop"
+  ],
+  "synced_markers": 6,
+  "sd_closed": true,
+  "sd_failed": false,
+  "sd_router_dropped": 1,
+  "sd_router_overflow": 0,
+  "sd_files": [
+    {
+      "index": 0,
+      "bytes": 4054480,
+      "accepted": 7152,
+      "synced": 7152
+    },
+    {
+      "index": 1,
+      "bytes": 1580417,
+      "accepted": 299,
+      "synced": 299
+    },
+    {
+      "index": 2,
+      "bytes": 44161,
+      "accepted": 20,
+      "synced": 20
+    },
+    {
+      "index": 3,
+      "bytes": 790996,
+      "accepted": 78,
+      "synced": 78
+    }
+  ],
+  "original_sd_sha256": "79cb5cbcea7823846102d8faf4b743d5a178feb83700f1a468a79220f9db8666",
+  "original_monitor_report_sha256": "79cb5cbcea7823846102d8faf4b743d5a178feb83700f1a468a79220f9db8666",
+  "original_verification_sha256": "f9b01c2dbef3415807331f76c0de54933bf6a218679aac59cd99738d0eb2fde1"
+}

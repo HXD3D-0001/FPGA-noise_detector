@@ -1,0 +1,14 @@
+{
+  "scope": "XSim RTL regression, 2026-10-26",
+  "case": "empty shared FFT capture store flushed before first packet",
+  "baseline_descriptor_flags": "0x0d",
+  "baseline_result": "FAIL",
+  "expected_descriptor_flags": "0x09",
+  "corrected_result": {
+    "status": "PASS",
+    "evidence": "RTL_ONLY",
+    "bench_sha256": "EA840170B6B2498CE17DDDD1ACDBACE8F12B8B9062638E51BEC89982C63B7D11",
+    "synthesis": false,
+    "rtl_sha256": "9321CE7C8199C89C5FFE28111DFEE5233F77599B2D599B437D3BE93487F292E2"
+  }
+}

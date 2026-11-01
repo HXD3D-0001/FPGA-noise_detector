@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-26",
+  "tool": "Vivado 2026.1",
+  "device": "xc7z020clg484-2",
+  "top": "capture_dma_wrapper",
+  "stage": "routed",
+  "main_clock_mhz": 50,
+  "change": "Fix spurious GAP in first FFT descriptor when flushing empty banks",
+  "before": {
+    "bit_sha256": "add39a246cb9548e7b65aafe1d4274eb00cd8302f7bd7a675e21cb78289b2249",
+    "raw_timing_rpt_sha256": "ebeab959f9b9987b167041d6b8a35437565807f0086383e16968a7d1613c9cc8",
+    "raw_utilization_rpt_sha256": "528843f3cc0f73013a8bd2c3a6920b4f5e12b5c57a580dd9b3fff071046904ea",
+    "metrics": {
+      "lut": 24004,
+      "ff": 28405,
+      "bram_tile": 47,
+      "dsp": 32,
+      "wns_ns": 0.477,
+      "tns_ns": 0.0,
+      "whs_ns": 0.054,
+      "ths_ns": 0.0
+    }
+  },
+  "after": {
+    "bit_sha256": "f3cc0530502901587ddc004984194177a3920d8997a8a459d8ce2883923c9c52",
+    "raw_timing_rpt_sha256": "57274c9cb8fe79914b9430e45008df4247132b743987cbdfb715d622f485d68a",
+    "raw_utilization_rpt_sha256": "7338a991dd92b7b3b52e9426c14f8a31a0221f5a53b7bc2e26a17908cf6ad16a",
+    "metrics": {
+      "lut": 24019,
+      "ff": 28297,
+      "bram_tile": 47,
+      "dsp": 32,
+      "wns_ns": 0.282,
+      "tns_ns": 0.0,
+      "whs_ns": 0.021,
+      "ths_ns": 0.0
+    }
+  },
+  "scope": "Comparison of two complete routed implementations. FFT size and target clock unchanged."
+}

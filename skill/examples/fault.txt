@@ -1,0 +1,3 @@
+INFO: synthetic fixture, reset released
+TB_DONE_OK
+Fatal: asserted sample did not match the reference

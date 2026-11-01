@@ -1,0 +1,16 @@
+#ifndef LFN_PS_SMOKE_H
+#define LFN_PS_SMOKE_H
+#include <stdint.h>
+
+#define PS_SMOKE_MAGIC UINT32_C(0x50534c46)
+#define PS_SMOKE_VERSION UINT32_C(1)
+#define PS_SMOKE_ALL_CHECKS UINT32_C(15)
+enum { PS_SMOKE_RUNNING=1, PS_SMOKE_PASS=2, PS_SMOKE_FAIL=3 };
+enum { PS_SMOKE_CRC=1, PS_SMOKE_METADATA=2, PS_SMOKE_VALUES=4,
+       PS_SMOKE_REJECT_CRC=8 };
+enum { PS_MB_MAGIC=0, PS_MB_VERSION=1, PS_MB_STATUS=2, PS_MB_CHECKS=3,
+       PS_MB_HEARTBEAT=4, PS_MB_NONCE=5, PS_MB_RESPONSE=6, PS_MB_FAULT=7,
+       PS_MB_SCTLR=8, PS_MB_WORDS=16 };
+uint32_t ps_smoke_self_test(void);
+uint32_t ps_smoke_response(uint32_t nonce);
+#endif
