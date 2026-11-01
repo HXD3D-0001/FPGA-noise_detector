@@ -18,3 +18,13 @@
 *.xsa
 *.bin
 *.exe
+
+# Local PC environments and downloaded packaging inputs
+.venv/
+venv/
+node_modules/
+/src/host_monitor/runtime/
+/src/host_monitor/dist/
+electron-*-win32-x64.zip
+python-*-embed-amd64.zip
+*.whl

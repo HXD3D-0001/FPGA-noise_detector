@@ -1,6 +1,6 @@
 # AX7021 板上运行
 
-适用板卡为 ALINX AX7021、XC7Z020-2CLG484。使用 MAX4466、PCM1808 模块与可启动的 FAT SD 卡。PL 位流 `capture.bit` 已与原产品包逐字节校验。完整启动镜像包含 FSBL、PL 和 ARM 程序。镜像中保留编译环境路径，因此不随精简包分发；板上实测绑定 `firmware.json` 记录的历史镜像 SHA-256。
+适用板卡为 ALINX AX7021、XC7Z020-2CLG484。使用 MAX4466、PCM1808 模块与可启动的 FAT SD 卡。历史位流的 SHA-256 记录在 `firmware.json` 中。公开版通过 [PL 源码](../src/rtl/) 和 [ARM 固件源码](../src/ps/) 重建镜像。完整启动镜像包含 FSBL、PL 和 ARM 程序。镜像中保留编译环境路径，因此不随精简包分发；板上实测绑定 `firmware.json` 记录的历史镜像 SHA-256。
 
 ## 准备启动镜像
 
