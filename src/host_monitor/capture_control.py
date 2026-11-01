@@ -121,7 +121,8 @@ class CaptureControl:
         messages={'idle':'板卡已就绪，可以开始采集','starting':'正在准备 ADC 采集，等待板端运行确认…',
                   'running':'ADC 左声道正在采集',
                   'stopping':'正在停止并等待 SD 文件关闭…','stopped':'采集已停止，SD 文件已关闭，可以断电或关闭软件'}
-        self.update(phase=phase,may_be_running=active,confirmed=True,session=str(data['session']),config=data['config_id'],message=messages[phase])
+        self.update(phase=phase,may_be_running=active,confirmed=True,session=str(data['session']),
+                    capture=str(data['capture_id']),config=data['config_id'],message=messages[phase])
         return phase
 
     @staticmethod
@@ -166,6 +167,8 @@ class CaptureControl:
                 self.update(may_be_running=True)
                 code,data=self._request(client,'POST',path)
                 if code not in (200,202):raise OSError(f'板卡未接受采集操作（HTTP {code}）')
+                if action=='start':
+                    self.update(started_session=token)
                 phase=self._apply(data)
                 deadline=time.monotonic()+self.operation_timeout
                 while True:

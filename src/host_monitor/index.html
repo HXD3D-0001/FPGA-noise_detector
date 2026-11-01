@@ -20,6 +20,7 @@
       <button id="serial-release" class="secondary" hidden>断开串口</button></div>
     <div class="actions"><button id="capture-start" disabled>开始采集</button><button id="capture-stop" class="stop" disabled>停止并保存</button></div></div>
     <div id="capture-operation" class="capture-operation" role="status">正在读取板卡采集状态…</div>
+    <div id="recording-warning" class="error" role="alert" hidden></div>
     <div id="error" class="error" role="alert" hidden></div>
     <details class="diagnostics"><summary>连接诊断与软件自检</summary><p id="capture-board">先填写板卡地址并连接</p><div class="actions"><button id="selftest" class="secondary">软件自检</button><span id="selftest-result" class="badge" role="status">尚未检测</span><span id="selftest-time">只读检查本地软件与板卡接口</span></div><div id="selftest-checks"></div></details>
   </section>
@@ -48,6 +49,17 @@
     <div class="actions report-actions"><button id="report-read" disabled>读取已存报告</button><label class="button secondary file-label">导入板端原始报告<input id="file" type="file" accept=".json,application/json"></label></div>
     <p id="comparison-text">读取两份 SD 汇总，或导入含对比结果的报告。</p>
     <div id="comparison-table"></div>
+    <div class="session-record">
+      <h3>整次采集记录</h3>
+      <p>逐点保存电脑收到的十个频带声压级。报告展示每个频带的整场曲线，以及住户标记、匹配的读数时间和时间差。</p>
+      <div class="actions report-actions">
+        <button id="export-session" disabled>一键导出完整记录（ZIP）</button>
+        <button id="session-preview-button" class="secondary" disabled aria-controls="session-preview" aria-expanded="false">查看整场图表与标记表</button>
+        <button id="session-find" class="secondary">查询最近一次本机记录</button>
+      </div>
+      <p id="session-status" role="status">停止并读取 SD 汇总后，可导出该次采集的完整时间序列与汇总报告。</p>
+      <iframe id="session-preview" sandbox title="完整时间序列、频带趋势和住户标记声压表" hidden></iframe>
+    </div>
     <div class="actions export-actions"><button id="export-json" class="secondary" disabled>导出 JSON</button><button id="export-csv" class="secondary" disabled>导出 CSV</button><button id="export-html" class="secondary" disabled>导出打印版</button><button id="open-folder" class="secondary">打开保存文件夹</button></div>
     <p id="report-operation" role="status">导出十个中心频率的声压级；保存后显示文件路径。</p>
   </section>

@@ -24,6 +24,8 @@ function renderCaptureControls() {
   }
   captureElement('capture-board').textContent = board ? (serial ? '板卡串口：' : '控制与数据地址：') + board : '选择连接方式并连接板卡';
   captureElement('capture-operation').className = 'capture-operation ' + (captureState.phase === 'error' || captureUncertain ? 'capture-error' : '');
+  captureElement('recording-warning').textContent = captureState.recording_error || '';
+  captureElement('recording-warning').hidden = !captureState.recording_error;
   captureElement('marker-submit').disabled = captureState.phase !== 'running' || captureUncertain || (typeof offline !== 'undefined' && offline);
   captureElement('report-read').disabled = !board || busy || captureState.may_be_running;
 }

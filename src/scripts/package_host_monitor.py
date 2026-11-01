@@ -18,7 +18,8 @@ WINDOW_URL = 'https://github.com/electron/electron/releases/download/v45.2.1/' +
 SERIAL_WHEEL = 'pyserial-3.5-py2.py3-none-any.whl'
 SERIAL_SHA256 = 'c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0'
 APP_FILES = ('desktop.py', 'server.py', 'discovery.py', 'capture_control.py',
-             'serial_board.py', 'capture_ui.js', 'index.html', 'app.js', 'model.js', 'style.css')
+             'serial_board.py', 'session_recording.py', 'session_export.py',
+             'capture_ui.js', 'index.html', 'app.js', 'model.js', 'style.css')
 
 
 def sha256(content):

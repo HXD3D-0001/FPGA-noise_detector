@@ -1,6 +1,6 @@
 # FPGA-noise_detector
 
-住宅低频噪音监测与特征分析。AX7021 通过 MAX4466 和 PCM1808 采集 48 kHz 音频，在 Zynq-7000 上分析中心频率 31.5～250 Hz 的十个频带，将频谱、事件与住户标记写入 SD 卡。竞赛展示由电脑网口直连 ETH0。提交的 Windows 上位机源码对应 1.5.1。
+住宅低频噪音监测与特征分析。AX7021 通过 MAX4466 和 PCM1808 采集 48 kHz 音频，在 Zynq-7000 上分析中心频率 31.5～250 Hz 的十个频带，将频谱、事件与住户标记写入 SD 卡。竞赛展示由电脑网口直连 ETH0。Windows 上位机源码对应 1.6.0，支持全程频带曲线、住户标记声压表和整场 ZIP 导出。
 
 ## 开发板源码
 
@@ -20,7 +20,7 @@
 | 从源码构建开发板 | Windows x64、PowerShell 7、Python 3.12+、Vivado/Vitis 2026.1。安装 Zynq-7000 器件支持、可用的 FFT IP 许可、Vitis Embedded 与 ARM 工具链。工程使用套件提供的 FreeRTOS、FatFs、lwIP 和 FSBL。 |
 | 运行上位机，通过网线连板 | Windows x64、Python 3.12+ 和浏览器。该方式使用 Python 标准库。电脑有线网口接板上 ETH0。 |
 | 运行上位机，通过 USB 串口连板 | 在上述环境中安装 `pyserial==3.5`，并确认 Windows 已识别板卡对应的 COM 口。串口参数为 115200、8N1。 |
-| 自行打包 1.5.1 Windows 独立窗口 | 在本机准备 Python 3.13.16 嵌入式运行包、Electron 45.2.1 Windows x64 和 pyserial 3.5 wheel。打包脚本校验下载文件的 SHA-256；版本、来源和命令见[构建说明](build/README.md)。 |
+| 自行打包 1.6.0 Windows 独立窗口 | 在本机准备 Python 3.13.16 嵌入式运行包、Electron 45.2.1 Windows x64 和 pyserial 3.5 wheel。打包脚本校验下载文件的 SHA-256；版本、来源和命令见[构建说明](build/README.md)。 |
 
 ### 构建开发板
 
@@ -47,7 +47,7 @@ python src/host_monitor/server.py --open --board http://169.254.70.21
 
 | 目录 | 内容及入口 |
 | --- | --- |
-| [src](src/README.md) | RTL、约束、PS 固件、1.5.1 上位机及生成脚本。 |
+| [src](src/README.md) | RTL、约束、PS 固件、1.6.0 上位机及生成脚本。 |
 | [sim](sim/README.md) | 离线验证、RTL 仿真和错误首帧标志的回归结果。 |
 | [build](build/README.md) | Vivado/Vitis 2026.1 构建入口、布局布线后报告及修正前后数据。 |
 | [board](board/README.md) | 硬件连接、启动文件校验、板卡运行和只读状态查询。 |

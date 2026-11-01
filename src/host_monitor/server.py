@@ -14,11 +14,13 @@ from http.client import HTTPException
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 from urllib.request import ProxyHandler, Request, build_opener
 from capture_control import CaptureControl
 from discovery import find_boards
 from serial_board import SerialBoard, list_ports
+from session_recording import SessionRecording, segment_id
+from session_export import render_session_html, write_session_bundle
 
 ROOT = Path(__file__).resolve().parent
 STATIC = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
@@ -28,7 +30,7 @@ MAX_RESPONSE = 256 * 1024
 MAX_REQUEST = 4096
 MAX_EXPORT_REQUEST = 16 * 1024 * 1024
 MAX_ARCHIVE_POINTS = 240
-SERVICE_VERSION = "1.5.1"
+SERVICE_VERSION = "1.6.0"
 
 
 def connection_state(mode, board=None, port=None):
@@ -437,6 +439,7 @@ class Archive:
 def make_server(host, port, board, capture_control=None, *, preference_file=None, export_dir=None):
     store = ReportStore(export_dir or default_reports_dir())
     archive = Archive(store.directory.parent / 'Sessions' if store.directory else None)
+    recording = SessionRecording(archive.directory)
     connection = connection_state("board" if board else "offline", board)
     opener = build_opener(ProxyHandler({}))
     control = capture_control or CaptureControl(log_path=Path(tempfile.gettempdir())/'AX7021Monitor-capture.log')
@@ -452,7 +455,7 @@ def make_server(host, port, board, capture_control=None, *, preference_file=None
     selection_lock = threading.Lock()
     serial_client = None
 
-    def read_selected(config, path, data=None):
+    def transport(config, path, data=None):
         if config['mode'] != 'serial':
             return read_board(opener, config['board'], path, data)
         with selection_lock:
@@ -463,6 +466,108 @@ def make_server(host, port, board, capture_control=None, *, preference_file=None
             return device.request('POST' if data is not None else 'GET', path, data)
         except OSError as error:
             return 502, json.dumps({'error':str(error)}, ensure_ascii=False).encode()
+
+    spectrum_lock = threading.Lock()
+    shutdown = threading.Event()
+    last_spectrum = 0.0
+    background_result = None
+
+    def active_identity(config):
+        state = control.snapshot()
+        if state.get('board') != config.get('board') or not state.get('confirmed'):
+            return None
+        try:
+            return segment_id(state.get('session'), state.get('capture'), state.get('config'))
+        except ValueError:
+            return None
+
+    def read_spectrum(config, *, background=False):
+        nonlocal last_spectrum, background_result
+        with spectrum_lock:
+            if config is not connection:
+                return 409,b'{"error":"CONNECTION_CHANGED"}'
+            now = time.monotonic()
+            if background:
+                if now-last_spectrum < 2:
+                    return
+                state = control.refresh()
+                if state['phase'] != 'running':
+                    last_spectrum = now
+                    if state['phase']=='error' and state.get('may_be_running') and state.get('capture'):
+                        recording.warn(segment_id(state['session'],state['capture'],state['config']))
+                    return
+            if (not background and background_result and background_result[0] is config
+                    and now-last_spectrum < 2 and control.snapshot()['phase'] == 'running'):
+                result = background_result[1]
+                background_result = None
+                return result
+            result = transport(config, '/api/spectrum')
+            code,payload = result
+            received = time.time_ns() // 1_000_000
+            last_spectrum = time.monotonic()
+            background_result = (config,result) if background and code == 200 else None
+            if code == 200:
+                report = json.loads(payload)
+                if isinstance(report,dict) and report.get('data_source') == 'LIVE_SNAPSHOT':
+                    frame = Archive._frame(report)
+                    if frame:
+                        state = control.snapshot()
+                        if state['phase']=='running' and frame[0]==active_identity(config):
+                            recording.point(frame,received,serial=config['mode']=='serial',
+                                            joined=state.get('started_session') != state['session'])
+                        if background:
+                            archive.record(report, payload.decode(json.detect_encoding(payload)))
+            elif control.snapshot()['phase'] == 'running':
+                key = active_identity(config)
+                if key:
+                    recording.warn(key)
+            return result
+
+    def read_selected(config, path, data=None):
+        if path == '/api/spectrum':
+            try:
+                return read_spectrum(config)
+            except OSError as error:
+                return 507,json.dumps({'error':str(error)},ensure_ascii=False).encode()
+        marker = path == '/api/marker' or path.startswith('/api/marker/')
+        key = active_identity(config) if marker else None
+        if marker and data is not None:
+            request = str(data.get('request_id',''))
+            if key and type(data.get('strength')) is int and isinstance(data.get('note',''),str):
+                # Commit the host submission time before dispatch; retrying keeps the first time.
+                try:
+                    recording.marker_request(key,request,data['strength'],data.get('note',''),time.time_ns()//1_000_000)
+                except OSError as error:
+                    return 507,json.dumps({'error':str(error)},ensure_ascii=False).encode()
+        else:
+            request = path.rsplit('/',1)[-1]
+        code,payload = transport(config,path,data)
+        if marker or path == '/api/report' or path.startswith('/api/report/'):
+            try:
+                reply = json.loads(payload)
+                if not isinstance(reply,dict):
+                    return code,payload
+                if marker and key:
+                    if code == 200 and reply.get('state')=='QUEUED' and reply.get('marker_id') and str(reply.get('request_id'))==request:
+                        recording.marker_reply(key,request,reply['marker_id'])
+                    elif data is not None and 400 <= code < 500:
+                        recording.marker_rejected(key,request)
+                elif code == 200 and isinstance(reply.get('stored'),dict) and reply.get('kind')=='noise_report':
+                    recording.summary(reply)
+            except OSError as error:
+                # Do not recast a board-acknowledged marker as a failed board write.
+                if not marker:
+                    return 507,json.dumps({'error':str(error)},ensure_ascii=False).encode()
+        return code,payload
+
+    def sample_while_running():
+        while not shutdown.wait(.5):
+            config = connection
+            if config.get('board') and control.snapshot().get('may_be_running'):
+                try:
+                    read_spectrum(config,background=True)
+                except (ValueError,OSError):
+                    pass  # SessionRecording keeps the error for /api/capture and retry.
 
     def switch(next_connection):
         nonlocal connection, serial_client
@@ -537,7 +642,7 @@ def make_server(host, port, board, capture_control=None, *, preference_file=None
                 # Consume the bounded body before rejecting: closing with unread POST
                 # bytes can reset Windows sockets and hide the intended HTTP error.
                 raw = self.rfile.read(length)
-                if self.path not in ("/api/discovery", "/api/connection", "/api/capture", "/api/marker", "/api/report", "/api/export", "/api/reveal"):
+                if self.path not in ("/api/discovery", "/api/connection", "/api/capture", "/api/marker", "/api/report", "/api/export", "/api/export-session", "/api/reveal"):
                     self.error(404, "NOT_FOUND")
                     return
                 local = f"127.0.0.1:{self.server.server_port}"
@@ -550,6 +655,24 @@ def make_server(host, port, board, capture_control=None, *, preference_file=None
                 data = json.loads(raw)
                 if not isinstance(data, dict):
                     raise ValueError("Expected object")
+                if self.path == '/api/export-session':
+                    try:
+                        key = segment_id(data.get('session'),data.get('capture'),data.get('config'))
+                        detail = recording.detail(key)
+                        if not detail['count'] or not detail['summary']:
+                            self.error(409,'需要本机逐点数据和已关闭的板端 SD 报告，请先停止并读取报告')
+                            return
+                        if store.directory is None:
+                            raise OSError('报告目录不可写')
+                        result = write_session_bundle(store.directory,detail)
+                    except KeyError:
+                        self.error(404,'找不到该捕获段的本机逐点记录')
+                        return
+                    except (ValueError,OSError) as error:
+                        self.error(400 if isinstance(error,ValueError) else 500,str(error))
+                        return
+                    self.respond(201,json.dumps(result,ensure_ascii=False).encode())
+                    return
                 if self.path == '/api/export':
                     try:
                         result = store.save(data)
@@ -614,7 +737,30 @@ def make_server(host, port, board, capture_control=None, *, preference_file=None
             self.respond(200, json.dumps(next_connection).encode())
 
         def do_GET(self):
-            if self.path in STATIC:
+            route = urlsplit(self.path)
+            if route.path in ('/api/session-detail','/api/session-preview'):
+                local = f"127.0.0.1:{self.server.server_port}"
+                if self.headers.get('Host') != local or self.headers.get('Origin') not in (None,'http://'+local):
+                    self.error(403,'只允许本软件窗口读取整场记录')
+                    return
+                try:
+                    query = parse_qs(route.query,keep_blank_values=True)
+                    identity = None
+                    if any(k in query for k in ('session','capture','config')):
+                        identity = segment_id(*(query.get(k,[None])[0] for k in ('session','capture','config')))
+                    preview = route.path.endswith('preview')
+                    detail = recording.detail(identity,metadata=not preview and query.get('metadata')==['1'])
+                    if preview:
+                        self.respond(200,render_session_html(detail).encode(),'text/html')
+                    else:
+                        self.respond(200,json.dumps(detail,ensure_ascii=False).encode())
+                except KeyError:
+                    self.error(404,'没有此捕获段的本机逐点记录')
+                except ValueError as error:
+                    self.error(400,str(error))
+                except OSError as error:
+                    self.error(503,str(error))
+            elif self.path in STATIC:
                 name, content_type = STATIC[self.path]
                 self.respond(200, (ROOT / name).read_bytes(), content_type)
             elif self.path == "/api/connection":
@@ -627,7 +773,10 @@ def make_server(host, port, board, capture_control=None, *, preference_file=None
             elif self.path == "/api/selftest":
                 self.respond(200, json.dumps(selftest(connection, read_selected), ensure_ascii=False).encode())
             elif self.path == "/api/capture":
-                self.respond(200, json.dumps(control.refresh(), ensure_ascii=False).encode())
+                state = control.refresh()
+                if recording.error:
+                    state['recording_error'] = recording.error
+                self.respond(200, json.dumps(state, ensure_ascii=False).encode())
             elif self.path == "/api/archive":
                 self.respond(200, json.dumps(archive.state(), ensure_ascii=False).encode())
             elif self.path in ("/api/status", "/api/spectrum") or (
@@ -653,15 +802,20 @@ def make_server(host, port, board, capture_control=None, *, preference_file=None
 
     class MonitorServer(ThreadingHTTPServer):
         def server_close(self):
+            shutdown.set()
+            sampler.join()
             super().server_close()
             with selection_lock:
                 if serial_client is not None:
                     serial_client.close()
+            recording.close()
 
     service = MonitorServer((host, port), Handler)
     service.capture_control = control
     service.store = store
     service.archive = archive
+    sampler = threading.Thread(target=sample_while_running, name='AX7021-observations',daemon=True)
+    sampler.start()
     return service
 
 

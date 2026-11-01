@@ -7,6 +7,7 @@ let connectionBoard = null;
 let history = MonitorModel.createHistory();
 let pollTimer = null, activePoll = null, activeSelftest = null, selftestBusy = false, configuring = false;
 let discoveryBusy = false, linkUnavailable = false;
+let sessionRequest = 0, localSession = null;
 
 function serialSelected() { return $('transport').value === 'serial'; }
 function showTransport() {
@@ -105,7 +106,12 @@ function chartLimits(values) {
   return [Math.min(high - 30, Math.floor(Math.min(...valid) / 10) * 10), high];
 }
 function renderReport(next) {
+  const sessionChanged = !report || report.identity !== next.identity || report.live !== next.live;
   report = next;
+  if (sessionChanged) {
+    if (!next.live) findLocalSession();
+    else resetSessionPanel('可查询本次采集已写入本机的逐点记录。');
+  }
   lastReportAt = Date.now(); reportStale = false;
   setExportEnabled(true);
   const origin = next.live ? (offline ? '导入的实时快照 · 非实时' : '板卡实时快照') :
@@ -231,6 +237,7 @@ async function readSnapshot(run) {
     if (missing || superseded) {
       if (report && activeSession != null && String(activeSession) !== report.session) {
         report = null; history = MonitorModel.createHistory(); lastAdvanced = 0; reportStale = false;
+        resetSessionPanel('等待新会话的首份频谱。');
         setExportEnabled(false);
       }
       if (report) {
@@ -365,6 +372,7 @@ $('file').addEventListener('change', async event => {
 });
 function resetDisplay() {
   report = null; status = null; history = MonitorModel.createHistory(); lastReceived = 0; lastAdvanced = 0;
+  resetSessionPanel('可查询最近一次保存在本机的采集记录。');
   reportStale = false; lastReportAt = 0;
   if (!pendingProduct.marker) $('marker-operation').textContent = '采集开始后可添加标记。';
   $('report-operation').textContent = '导出十个中心频率的声压级；保存后显示文件路径。';
@@ -579,6 +587,7 @@ async function restoreArchive() {
     $('received').textContent = '留档时间 ' + archivedAt;
     $('freshness').textContent = '上次采集留档';
     $('report-operation').textContent = '已恢复上次采集的数据（本机留档），可直接导出。';
+    if (next.live) findLocalSession();
     badge('上次采集留档', 'warn');
     drawTrend();
   } catch (error) { /* 留档是可选的，读取失败不影响实时监测。 */ }
@@ -623,6 +632,71 @@ async function exportReport(kind) {
   } finally { exportBusy = false; setExportEnabled(true); }
 }
 for (const kind of ['json','csv','html']) $('export-'+kind).addEventListener('click',()=>exportReport(kind));
+
+function resetSessionPanel(message) {
+  sessionRequest++;
+  localSession = null;
+  const preview = $('session-preview');
+  if (!preview.hidden && preview.src) preview.src = 'about:blank';
+  preview.hidden = true;
+  $('session-preview-button').disabled = $('export-session').disabled = true;
+  $('session-preview-button').ariaExpanded = 'false';
+  $('session-preview-button').textContent = '查看整场图表与标记表';
+  $('session-find').textContent = report ? '查询本次逐点记录' : '查询最近一次本机记录';
+  $('session-status').textContent = message;
+}
+function sessionKey(source) {
+  return {session:String(source.session),capture:String(source.capture),config:String(source.config)};
+}
+function sessionQuery(key) {
+  return Object.entries(key).map(([k,v]) => k+'='+encodeURIComponent(v)).join('&');
+}
+async function findLocalSession() {
+  const key = report ? sessionKey(report) : null;
+  resetSessionPanel('正在查询本机的逐点记录…');
+  const request = sessionRequest;
+  try {
+    const data = await getJSON('/api/session-detail?metadata=1' + (key ? '&'+sessionQuery(key) : ''));
+    if (request !== sessionRequest) return;
+    const identity = sessionKey(data);
+    if (!Object.values(identity).every(v => /^\d+$/.test(v)) ||
+        (key && sessionQuery(key) !== sessionQuery(identity)) || !Number.isSafeInteger(data.count) || data.count < 0) {
+      throw new Error('本机记录的采集身份或读数数量无效。');
+    }
+    localSession = {...identity, count:data.count, summary:data.summary === true};
+    $('session-preview-button').disabled = data.count === 0;
+    $('export-session').disabled = !localSession.summary || data.count === 0;
+    $('session-status').textContent = `会话 ${identity.session} · 采集 ${identity.capture} · 配置 ${identity.config}：${data.count} 个本机读数。` +
+      (localSession.summary ? '已读取 SD 汇总。' : '等待停止并读取 SD 汇总后导出。') + (data.warning ? '\n'+data.warning : '');
+  } catch (error) {
+    if (request !== sessionRequest) return;
+    $('session-status').textContent = error.httpStatus === 404
+      ? (key ? '本机没有该会话的逐点记录。已有板端汇总仍可单独导出。' : '本机没有保存过逐点记录。')
+      : '查询逐点记录失败：'+error.message;
+  }
+}
+$('session-find').addEventListener('click', findLocalSession);
+$('session-preview-button').addEventListener('click', () => {
+  if (!localSession?.count) return;
+  const preview = $('session-preview'), open = preview.hidden;
+  if (open) preview.src = '/api/session-preview?'+sessionQuery(sessionKey(localSession));
+  preview.hidden = !open;
+  $('session-preview-button').ariaExpanded = String(open);
+  $('session-preview-button').textContent = open ? '收起整场图表与标记表' : '查看整场图表与标记表';
+});
+$('export-session').addEventListener('click', async () => {
+  if (!localSession?.count || !localSession.summary || $('export-session').disabled) return;
+  const request = sessionRequest;
+  $('export-session').disabled = true;
+  $('session-status').textContent = '正在生成完整时间序列、标记表和汇总报告…';
+  try {
+    const info = await getJSON('/api/export-session', {method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(sessionKey(localSession))}, 120000);
+    if (request === sessionRequest) $('session-status').textContent = `完整记录 ZIP 已保存（${info.bytes} 字节）\n${info.path}`;
+  } catch (error) {
+    if (request === sessionRequest) $('session-status').textContent = '完整记录导出失败：'+error.message;
+  } finally { if (request === sessionRequest) $('export-session').disabled = false; }
+});
 $('open-folder').addEventListener('click', async () => {
   $('report-operation').textContent = '正在打开报告保存文件夹…';
   try {
