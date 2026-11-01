@@ -20,8 +20,9 @@ try {
     & ./scripts/export_pre_adc_hardware.ps1 -VivadoRoot $vivadoRoot -PythonExe $pythonExe
     RunNative $vivado @('-mode','batch','-source','scripts/implement_pre_adc_hardware.tcl','-nojournal')
     & ./scripts/export_pre_adc_hardware.ps1 -Ethernet -VivadoRoot $vivadoRoot -PythonExe $pythonExe
-    $hw = 'build/pre_adc_network_hardware'
+    $hw = Join-Path $src 'build/pre_adc_network_hardware'
     & ./scripts/build_embedded_platform.ps1 -SuiteRoot $suite -AllowCapture -Network -Xsa "$hw/pre_adc_dma.xsa" -HardwareReceipt "$hw/status.json"
+    if ($LASTEXITCODE -ne 0) { throw "BSP build failed. See $src/build/capture_network_bsp/status.json" }
     RunNative $pythonExe @('-B','scripts/build_capture_image.py','--suite-root',$suite,'--network')
     RunNative $pythonExe @('-B','scripts/build_product_boot.py','--suite-root',$suite)
     Write-Output "BOOT.BIN: $(Join-Path $src 'build/product_boot/BOOT.BIN')"
