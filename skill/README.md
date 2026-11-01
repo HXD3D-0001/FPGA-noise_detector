@@ -1,5 +1,7 @@
 # FPGA 仿真验收技能包
 
+本包属于赛题 3.3.5.2 的脚本类技能，用于判断一次 XSim 仿真是否完成了约定的测试。换题目时指定新测试平台的完成标志，并用已知故障验证脚本能识别该平台的错误输出。脚本在普通电脑上运行，无需 PYNQ 或开发板。
+
 适合已经有测试平台、准备把仿真接入自动构建的团队。输入为一次 XSim 运行的完整文本输出、该进程的退出码和测试平台约定的通过标志。输出为可供构建脚本使用的通过或失败状态。脚本只使用 Python 3.8 及以上版本的标准库。
 
 ## 提炼过程
@@ -37,6 +39,17 @@ exit $LASTEXITCODE
 | 仿真提前结束，标志缺失；多次运行被拼接，标志重复 | 拒绝 |
 
 每次更换测试平台，应至少注入一个会触发断言的已知错误，核对脚本返回值，再恢复原设计运行正例。示例自检覆盖上述规则和“成功词仅出现在回显命令中”的情况。
+
+## 用共享 FFT 缓冲区案例复查
+
+两份节选取自 2026-10-26 同一测试平台的 XSim 记录，仅保留运行命令、判定行和结束命令。修正前，空缓冲区清空后的第一个描述符含多余的 GAP 位。修正后，同一测试平台输出整行 `PASS spectrum_shared_store`。在本目录执行下面两条命令，每次执行后用 PowerShell 的 `$LASTEXITCODE` 查看结果。
+
+```powershell
+python verify_xsim.py examples/fft_before.txt --exit-code 0 --pass-line "PASS spectrum_shared_store"
+python verify_xsim.py examples/fft_after.txt --exit-code 0 --pass-line "PASS spectrum_shared_store"
+```
+
+第一条应返回 1，并指明故障出现在第 3 行。第二条应返回 0。两次回放都传入进程退出码 0，脚本仍能从第一份日志中识别失败。原始运行的对照结果见配套工程包的 `sim/result.json`。运行 `python selftest.py` 会依次检查九项基础用例及这两份真实日志节选。
 
 ## 适用边界
 

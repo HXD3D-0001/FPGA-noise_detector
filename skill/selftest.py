@@ -8,10 +8,10 @@ from tempfile import TemporaryDirectory
 ROOT = Path(__file__).resolve().parent
 
 
-def expect(file, code, expected):
+def expect(file, code, expected, marker="TB_DONE_OK"):
     run = subprocess.run(
         [sys.executable, str(ROOT / "verify_xsim.py"), str(file),
-         "--exit-code", str(code), "--pass-line", "TB_DONE_OK"],
+         "--exit-code", str(code), "--pass-line", marker],
         capture_output=True, text=True,
     )
     if run.returncode != expected:
@@ -35,7 +35,10 @@ def main():
             path = Path(directory) / (name + ".txt")
             path.write_text(text, encoding="utf-8")
             expect(path, 0, expected)
-    print(f"PASS: {len(cases) + 3} checker cases")
+    marker = "PASS spectrum_shared_store"
+    expect(ROOT / "examples/fft_before.txt", 0, 1, marker)
+    expect(ROOT / "examples/fft_after.txt", 0, 0, marker)
+    print(f"PASS: {len(cases) + 3} checker cases and 2 archived FFT log excerpts")
 
 
 if __name__ == "__main__":

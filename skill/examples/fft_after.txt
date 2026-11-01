@@ -1,0 +1,4 @@
+Time resolution is 1 ps
+run -all
+PASS spectrum_shared_store
+exit
